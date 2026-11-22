@@ -164,7 +164,49 @@ Shift gain is improvement over an unchanged prediction in circular endpoint erro
 | qwen | attention | 1.1770 | 0.1243 | -0.0473 | 0.1716 | 100.0000 | N/A |
 | qwen | attention_bilstm | 0.3850 | 0.0175 | -0.0110 | 0.0285 | 100.0000 | N/A |
 
-## 8. Limits and remaining work
+## 8. VideoMAE and TimeSformer report-generation pilot: complete results
+
+These systems use cached **frozen** VideoMAE or TimeSformer features with the same Qwen2.5-0.5B-Instruct decoder architecture, a trained feature projection and decoder LoRA. Each condition was trained for two epochs with seed 42 on 1,101 diagnostic training examples and evaluated on the same 113 diagnostic validation examples. The text-only and shuffled conditions are supervised controls, not zero-shot models; the visual backbones were not fine-tuned in this reporting pilot. The text-only conditions still undergo independent training runs and are not independent external baselines.
+
+**Interpretation:** These are exploratory reference-agreement measurements, not clean-test results. The diagnostic split remains uncertified. Generation emitted a warning that the attention mask was not explicitly supplied; no padding was intentionally added within an individual prompt, but the effect has not been independently verified, so interpret these scores cautiously. A 1.5B decoder follow-up uses explicit attention masks; its results were not complete when this document was updated. No statistical significance, visual-grounding success, human preference or external generalization is established.
+
+### Structured and text-reference metrics
+
+| Condition | Severity ↑ | tIoU ↑ | Conflict H ↓ | Omission O ↓ | BLEU-4 ↑ | ROUGE-L ↑ | METEOR ↑ | Cider+PTB ↑ | BERTScore ↑ |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| VideoMAE visual | 0.4513 | 0.4440 | 0.2761 | 0.1386 | 0.1041 | 0.3360 | 0.2842 | 0.0292 | 0.6796 |
+| VideoMAE shuffled | 0.4513 | 0.4086 | 0.2637 | 0.1283 | 0.0968 | 0.3402 | 0.2784 | 0.0370 | 0.6846 |
+| VideoMAE text-only | 0.2743 | 0.3909 | 0.3221 | 0.1475 | 0.1265 | 0.3611 | 0.3120 | 0.0424 | 0.6957 |
+| TimeSformer visual | 0.4779 | 0.4410 | 0.2513 | 0.1224 | 0.1173 | 0.3472 | 0.3102 | 0.0510 | 0.6837 |
+| TimeSformer shuffled | 0.4513 | 0.4174 | 0.2425 | 0.1106 | 0.0963 | 0.3290 | 0.2917 | 0.0499 | 0.6706 |
+| TimeSformer text-only | 0.2743 | 0.3909 | 0.3221 | 0.1475 | 0.1278 | 0.3634 | 0.3174 | 0.0431 | 0.6990 |
+
+### Full NLI breakdown for all six report-generation conditions
+
+NLI is a reference-text cross-encoder score, not video verification. Explanation and full-report scores are each entailment probability minus contradiction probability. NLI loss is negative log entailment; lower is better. The fixed model revision is `fa2804872c3b4bd748f38c0185cc85775361e735`.
+
+| Condition | Exp entail ↑ | Exp contradict ↓ | Exp NLI ↑ | Exp loss ↓ | Full entail ↑ | Full contradict ↓ | Full NLI ↑ | Full loss ↓ |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| VideoMAE visual | 0.0568 | 0.2542 | -0.1974 | 4.4150 | 0.3750 | 0.1401 | 0.2349 | 1.6420 |
+| VideoMAE shuffled | 0.1078 | 0.2431 | -0.1353 | 3.9733 | 0.4577 | 0.1321 | 0.3256 | 1.3887 |
+| VideoMAE text-only | 0.0962 | 0.1657 | -0.0694 | 3.2494 | 0.4118 | 0.2077 | 0.2041 | 1.8939 |
+| TimeSformer visual | 0.1172 | 0.1707 | -0.0535 | 3.7623 | 0.4179 | 0.1053 | 0.3126 | 1.5615 |
+| TimeSformer shuffled | 0.0748 | 0.1618 | -0.0870 | 4.2007 | 0.3115 | 0.1086 | 0.2030 | 2.0144 |
+| TimeSformer text-only | 0.0999 | 0.1628 | -0.0629 | 3.2111 | 0.4187 | 0.2062 | 0.2125 | 1.8538 |
+
+### Comparison and paper wording
+
+- Within this six-condition pilot, TimeSformer visual has the highest observed severity accuracy (0.4779), Cider+PTB (0.0510), and explanation NLI score (-0.0535).
+- VideoMAE visual has the highest observed reporting-window tIoU (0.4440). TimeSformer text-only has the highest BLEU-4 (0.1278), METEOR (0.3174), and BERTScore (0.6990). VideoMAE shuffled has the highest full-report NLI score (0.3256).
+- The explanation NLI scores are negative for all six conditions, indicating that this scorer assigned greater contradiction than entailment on average. This is a model-based text metric, not a clinical or human factuality determination.
+- Scores differ across metrics and conditions. Do not describe a universal winning model or equate a numerical lead with statistical significance. Report the full controls and the data and generation limitations.
+- The historical Qwen 7B reporting comparisons and this shared 0.5B decoder pilot use different backbones/training regimes and must not be presented as an architecture-controlled comparison.
+
+## 9. Stronger-decoder follow-up: in progress
+
+The Qwen2.5-1.5B-Instruct follow-up uses explicit attention masks, three training epochs and the same diagnostic training/validation data. At the time of this update the initial TimeSformer visual condition was generating reports; the other matched controls and scoring were queued. No follow-up metrics are reported until complete. Training loss is not a test result.
+
+## 10. Limits and remaining work
 
 - No clean source-grouped benchmark is frozen; independent source and timestamp reviews remain outstanding.
 - No new clean final-test results, human ratings or external validation are reported.
@@ -179,5 +221,6 @@ Shift gain is improvement over an unchanged prediction in circular endpoint erro
 - Historical architecture and NLI: `/data/rahul_mishra/omkar/crashx/outputs/temporal_grounding_poc_v1/paper_cvpr2026_v9/paper/evidence/architecture_v4.json`
 - Matched diagnostic NLI: `/data/rahul_mishra/omkar/crashx/outputs/exploratory_video_20261116/matched_reporting_v2/nli_scores.json`
 - Matched structured/text scores: `/data/rahul_mishra/omkar/crashx/outputs/exploratory_video_20261116/matched_reporting_v2/structured_scores.json` and `text_scores_with_resources_v2.json`
+- Video-report pilot metric evidence: `/data/rahul_mishra/omkar/crashx/outputs/exploratory_video_20261116/video_report_pilot_v1/scored_results.json`
 - Diagnostic backbone and interventions: `/data/rahul_mishra/omkar/crashx/outputs/exploratory_video_20261116/<backbone>/report.json` and `validation_counterfactuals.json`
 - Publication tables and Cider+PTB recomputation: `/data/rahul_mishra/omkar/crashx/outputs/temporal_grounding_poc_v1/paper_cvpr2026_v9/paper/tables/`
