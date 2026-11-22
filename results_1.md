@@ -6,6 +6,21 @@ NLI compares generated text against reference text. Every available reporting NL
 
 Historical original split uses 150 saved test clips; diagnostic localization uses 1,101 positive-duration training clips and 113 validation clips. These cohorts, settings and score definitions must not be mixed. NLI historical checkpoints are not uniformly pinned; matched diagnostic NLI is pinned.
 
+## Paper highlights: strongest supported findings
+
+These are candidates for a paper, **not claims of acceptance, state-of-the-art performance, independent generalization or proven factuality**. Each result must retain its cohort and limitations. Report the negative findings and full control comparisons alongside positive results.
+
+| Finding | Evidence | Appropriate paper wording | Required limitation |
+| --- | --- | --- | --- |
+| **Matched reporting improvement** | On 113 diagnostic validation clips, severity accuracy is **0.5310 vs 0.0088** and omission cost is **0.0782 vs 0.3590** for the historical adapted Qwen versus zero-shot Qwen under matched inference settings. | "On the diagnostic validation cohort, the adapted model achieved higher reference severity agreement and lower omission cost than zero-shot Qwen." | Candidate-quarantined split is uncertified; historical adapter predates review and source overlap remains unresolved. |
+| **Matched text agreement** | Adapted vs zero-shot: BLEU-4 **0.1387 vs 0.0157**, Cider+PTB **0.0951 vs 0.0027**, BERTScore **0.6879 vs 0.5085**. | "The adapted reports had higher reference text-similarity scores under the specified scorers." | Similarity is not expert-verified factuality; Cider+PTB differs from the historical TF-cosine proxy. |
+| **Full-report NLI, with a mixed result** | Full-report NLI score **0.3615 vs 0.1184** for adapted vs zero-shot; explanation NLI **0.0671 vs 0.0865**. | "The adapted model had a higher full-report NLI score, while its explanation NLI score was lower." | NLI compares reference and generated text; contradiction increased in the adapted condition and does not verify the video. |
+| **Source and metric audit** | Confirmed source-footage overlap includes train-test contamination; all six saved primary CIDEr-labeled values reproduce a legacy TF-cosine proxy. | "We document source overlap and distinguish the historical text-similarity proxy from a separate Cider+PTB replay." | Review is incomplete; source candidates are not automatically duplicates. |
+| **Temporal-prior finding** | The train-selected 2–4 s prior achieves diagnostic validation tIoU **0.5649**, above the best tested fine-tuned visual estimate **0.4690**. | "A training-selected constant window outperformed the evaluated visual temporal heads on the diagnostic validation cohort." | Split is uncertified; fine-tuned checkpoints were selected on this validation set. This is evidence against claiming demonstrated visual grounding. |
+| **Decoder uncertainty** | Historical TCD-minus-greedy paired intervals include zero for severity, tIoU and omission cost. | "TCD produced numerical changes, but the paired analysis did not establish an advantage over greedy decoding." | Original split is contaminated; clip bootstrap does not account for source dependence or seed variability. |
+
+The matched severity difference is **+0.5221** with a descriptive 95% paired video-bootstrap interval **[0.4336, 0.6106]**. The omission-cost difference is **-0.2808** with interval **[-0.3089, -0.2513]**. These intervals do not account for source dependence, training-seed variation or multiple comparisons and should not be presented as confirmatory statistical proof.
+
 ## 1. Matched reporting on diagnostic validation
 
 Same 113 clips, Qwen backbone, prompt, frame sampling and greedy decoding; the adapted condition uses a verified historical adapter. Historical training occurred before source review, and source independence is unresolved.
@@ -13,12 +28,12 @@ Same 113 clips, Qwen backbone, prompt, frame sampling and greedy decoding; the a
 | Condition | Severity ↑ | tIoU ↑ | H ↓ | O ↓ | BLEU ↑ | ROUGE ↑ | METEOR ↑ | Cider+PTB ↑ | BERTScore ↑ |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | zero_shot | 0.0088 | 0.0142 | 0.2631 | 0.3590 | 0.0157 | 0.1646 | 0.2079 | 0.0027 | 0.5085 |
-| historical_finetuned | 0.5310 | 0.4204 | 0.1876 | 0.0782 | 0.1387 | 0.3366 | 0.3689 | 0.0951 | 0.6879 |
+| historical_finetuned | **0.5310** | **0.4204** | **0.1876** | **0.0782** | **0.1387** | **0.3366** | **0.3689** | **0.0951** | **0.6879** |
 
 | Condition | Exp entail ↑ | Exp contradict ↓ | Exp score ↑ | Full entail ↑ | Full contradict ↓ | Full score ↑ |
 | --- | --- | --- | --- | --- | --- | --- |
-| zero_shot | 0.1411 | 0.0546 | 0.0865 | 0.1753 | 0.0569 | 0.1184 |
-| historical_finetuned | 0.2469 | 0.1797 | 0.0671 | 0.4721 | 0.1106 | 0.3615 |
+| zero_shot | 0.1411 | **0.0546** | **0.0865** | 0.1753 | **0.0569** | 0.1184 |
+| historical_finetuned | **0.2469** | 0.1797 | 0.0671 | **0.4721** | 0.1106 | **0.3615** |
 
 The fine-tuned condition has higher full-report NLI score, while zero-shot has higher explanation NLI score and lower contradiction in both comparisons. No single factuality winner follows.
 
@@ -137,7 +152,7 @@ Fine-tuned checkpoints were selected on the same validation set used for the rep
 
 | Method | Window / checkpoint | tIoU ↑ | THR@.25 ↑ | THR@.50 ↑ | NLI |
 | --- | --- | --- | --- | --- | --- |
-| constant | [2.0, 4.0] | 0.5649 | 0.9646 | 0.7522 | N/A |
+| constant | [2.0, 4.0] | **0.5649** | **0.9646** | **0.7522** | N/A |
 | mean | [2.1708, 3.7348] | 0.4663 | 0.9469 | 0.2920 | N/A |
 | median | [2.0, 4.0] | 0.5649 | 0.9646 | 0.7522 | N/A |
 | videomae fine-tuned | selected epoch 4 | 0.4577 | 0.8053 | 0.4336 | N/A |
