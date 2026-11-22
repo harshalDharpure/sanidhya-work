@@ -1,4 +1,4 @@
-# CrashX: Structured Accident Reporting and an Audit of Temporal Grounding
+# CrashLogic: Structured Accident Report Generation and an Audit of Temporal Grounding
 
 **Authors:** to be added  
 **Status:** Research draft. The experimental results are historical or exploratory; the benchmark is not yet independently reviewed or frozen.
