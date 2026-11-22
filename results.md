@@ -86,3 +86,30 @@
 | Earlier KFall result | Timed event-matching endpoint. |
 | Earlier SisFall result | Whole-trial endpoint; an alarm before the fall can count. |
 | Architecture comparison | Earlier KFall/SisFall results and current specialist-free results use different architectures and evaluation endpoints. |
+
+## Current Tier 2: how it makes a decision
+
+Tier 2 receives a window when the Tier 1 score is **uncertain**, or when the Tier 1 score is low but the separate risk score is high. It uses the current sensor information and recent detector scores to choose one of three actions:
+
+- **Decide now:** compare the risk score with a decision threshold.
+- **Compare past cases:** look at similar fall and daily-activity examples from the source training data, then choose the closer group.
+- **Wait:** look at the next sensor window, 0.5 seconds later, and check the risk again. It waits at most one hop for that decision.
+
+```mermaid
+flowchart TD
+    A[Window sent to Tier 2:<br/>uncertain score or low score with high risk] --> B[Read sensor information,<br/>recent scores and risk score]
+    B --> C[Learned controller chooses an action]
+    C --> D[Decide now]
+    C --> E[Compare with past cases]
+    C --> F[Wait 0.5 seconds]
+    D --> G[Compare risk score<br/>with decision threshold]
+    E --> H[Find similar fall and daily-activity cases<br/>from source training data]
+    H --> I[Choose the closer group]
+    F --> J[Read next sensor window<br/>and check risk again]
+    G --> K[Positive or negative<br/>window decision]
+    I --> K
+    J --> K
+    K --> L[Send decision to confirmation step]
+```
+
+A positive window is not automatically an alarm: the current system requires **two consecutive positive windows** for confirmation. Past cases come from source training subjects, not the external test recordings. The diagram describes the current specialist-free system; it does not describe the earlier CNN–LSTM specialist system.
